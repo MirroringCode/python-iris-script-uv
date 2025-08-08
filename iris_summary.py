@@ -3,6 +3,7 @@
 # dependencies = [
 #   "click==8.1.8",
 #   "pandas==2.2.3",
+#   "rich==14.0.0",
 #   "ucimlrepo==0.0.7",
 # ]
 # ///
@@ -74,24 +75,33 @@ class DescriptiveStatistics:
 
 
 def main(operation, variable):
-    """Fetch the iris dataset from UCI."""
-    print("Fetching iris dataset using ucimlrepo")
-    iris = fetch_ucirepo(id=UCIDataset.IRIS.value)
-    print("dataset fetched successfully")
-
     if operation is Operation.SUMMARY:
+        iris = fetch_iris()
         if variable:
-            print(f"{IrisVariable(variable)} summary:")
-            # pp(iris.data.features[IrisVariable(variable).value])
-            print(DescriptiveStatistics(
+            logging.info(f"{IrisVariable(variable)} summary:")
+            logging.info(DescriptiveStatistics(
                 iris.data.features[IrisVariable(variable).value]
             ))
         else:
-            print("All variables:")
-            pp(iris.variables)
+            logging.info("All variables:")
+            logging.info(pformat(iris.variables))
     elif operation == Operation.METADATA:
-        print("Metadata summary:")
-        pp(iris.metadata)
+        logging.info("Metadata summary:")
+        logging.info(pformat(iris.metadata))
+
+def fetch_iris():
+    """Fetch the iris dataset from UCI."""
+    logging.info("Fetching iris dataset...")
+    try:
+        iris_data = fetch_ucirepo(id=UCIDataset.IRIS.value)
+        assert "data" in iris_data.keys(), \
+            "Object does not contain expected structure."
+    except Exception as e:
+        logging.critical(f"Faciled to fetch iris dataset: {e}")
+        sys.exit(1)
+    else:
+        logging.info("Iris dataset fetched successfully.")
+        return iris_data
 
 if __name__ == "__main__":
     main()
