@@ -6,7 +6,7 @@
 # ]
 # ///
 
-from enum import IntEnum, StrEnum
+from enum import IntEnum, StrEnum, auto
 from pprint import pprint as pp
 
 import click
@@ -20,26 +20,40 @@ class IrisVariable(StrEnum):
     PETAL_WIDTH  = "petal width"
     SEPAL_WIDTH  = "sepal width"
     SEPAL_LENGTH = "sepal length"
+
+class Operation(StrEnum):
+    SUMMARY = auto()
+    METADATA = auto()
  
 @click.command()
-@click.option(
+@click.option( 
     "--operation",
-    default="summary",
-    type=click.Choice(["summary", "metadata"]),
+    default=Operation.SUMMARY,
+    type=click.Choice(Operation),
     help="Operation to perform: variable summary or dataset metadata",
 )
 
-def main(operation):
+@click.option(
+    "--variable",
+    type=click.Choice(IrisVariable),
+    help="variable to summarize.",
+    required=False,
+)
+
+
+
+def main(operation, variable):
     """Fetch the iris dataset from UCI."""
     print("Fetching iris dataset using ucimlrepo")
     iris = fetch_ucirepo(id=UCIDataset.IRIS.value)
     print("dataset fetched successfully")
 
-    if operation == "summary":
-        print("variable summary:")
-        pp(iris.variables)
-    elif operation == "metadata":
-        print("dataset metadata:")
+    if operation is Operation.SUMMARY:
+        if variable:
+            print(f"{IrisVariable(variable)} summary:")
+            pp(iris.data.features[IrisVariable(variable).value])
+    elif operation == Operation.METADATA:
+        print("Metadata summary:")
         pp(iris.metadata)
 
 if __name__ == "__main__":
